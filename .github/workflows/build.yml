@@ -1,0 +1,53 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Node.js CI
+
+on:
+  push:
+    # # Sequence of patterns matched against refs/tags
+    # tags:
+    #   - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+      
+permissions:
+    contents: write
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: 'hpcc-systems/hpcc-js-wasm'
+        path: 'hpcc-js-wasm'
+        ref: 'wasm-graphviz-v1.12.0'
+
+    - name: Install OS Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential
+        sudo apt-get install -y git cmake ninja-build wget zip
+        sudo apt-get install -y gcc-multilib g++-multilib pkg-config autoconf bison libtool flex
+        sudo apt-get install -y python3 python3-pip
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - working-directory: 'hpcc-js-wasm'
+      run: |
+        npm ci && \
+        sudo npx playwright install chromium --with-deps && \
+        npm run install-build-deps && \
+        npm run build
+    
+    - working-directory: 'hpcc-js-wasm/dist'
+      run: |
+        ls -R
