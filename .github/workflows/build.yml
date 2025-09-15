@@ -5,9 +5,9 @@ name: Node.js CI
 
 on:
   push:
-    # # Sequence of patterns matched against refs/tags
-    # tags:
-    #   - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
       
 permissions:
     contents: write
@@ -50,3 +50,17 @@ jobs:
     - working-directory: 'hpcc-js-wasm'
       run: |
         ls -R
+
+    - name: Archive Release
+      uses: thedoctor0/zip-release@master
+      with:
+        type: 'zip'
+        directory: 'hpcc-js-wasm/packages/graphviz/dist'
+        filename: "${{ github.event.repository.name }}-${{ github.ref_name }}-${{ matrix.os }}.zip"
+        
+    - name: Release prebuilt
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "hpcc-js-wasm/packages/graphviz/dist/${{ github.event.repository.name }}-${{ github.ref_name }}-${{ matrix.os }}.zip"
+        allowUpdates: true
+        token: ${{ secrets.GITHUB_TOKEN }}
