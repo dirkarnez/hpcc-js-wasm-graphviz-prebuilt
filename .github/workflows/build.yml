@@ -47,6 +47,6 @@ jobs:
         npm run install-build-deps && \
         npm run build
     
-    - working-directory: 'hpcc-js-wasm/dist'
+    - working-directory: 'hpcc-js-wasm'
       run: |
         ls -R
